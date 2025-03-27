@@ -4,7 +4,7 @@ export GLUE_DIR=/proj/cos568proj2-PG0/glue_data
 export TASK_NAME=RTE
 export PATH=$PATH:/users/atharvsp/.local/bin
 rm run_2a_$1.out
-python3 run_glue.py \
+python3 task2a/run_glue.py \
   --model_type bert \
   --model_name_or_path bert-base-cased \
   --task_name $TASK_NAME \
@@ -18,4 +18,4 @@ python3 run_glue.py \
   --output_dir /tmp/$TASK_NAME/ \
   --overwrite_output_dir \
   --world_size 4 \
-  --local_rank $1 &> run_2a_$1.out
+  --local_rank $1 &> task2a/run_2a_$1.out
