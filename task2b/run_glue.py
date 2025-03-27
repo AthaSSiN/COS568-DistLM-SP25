@@ -169,18 +169,10 @@ def train(args, train_dataset, model, tokenizer):
     return global_step, tr_loss / global_step
 
 def average_gradients(model):
-    
-    # use gather and scatter to update gradients from the backend
-    size = int(dist.get_world_size())
+    size = float(dist.get_world_size())
     for param in model.parameters():
-        if dist.get_rank() == 0: 
-            gather_list = [torch.zeros_like(param.grad.data) for _ in range(size)]
-            dist.gather(param.grad.data, gather_list, dst=0)
-            average = torch.stack(gather_list).mean(0)
-            dist.scatter(param.grad.data, [average for _ in range(size)], src=0)
-        else:
-            dist.gather(param.grad.data, dst=0)
-            dist.scatter(param.grad.data, src=0)
+        dist.all_reduce(param.grad.data, op=dist.ReduceOp.SUM)
+        param.grad.data /= size
         
 def evaluate(args, model, tokenizer, prefix=""):
     # Loop to handle MNLI double evaluation (matched, mis-matched)
