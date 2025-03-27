@@ -167,12 +167,13 @@ def train(args, train_dataset, model, tokenizer):
 def average_gradients(model):
     
     # use gather and scatter to update gradients from the backend
-    size = float(dist.get_world_size())
+    size = int(dist.get_world_size())
     for param in model.parameters():
-        dist.gather(param.grad.data, dst=0)
-        if dist.get_rank() == 0:
-            param.grad.data /= size
-        dist.scatter(param.grad.data, src=0)
+        gather_list = [torch.zeros_like(param.grad.data) for _ in range(size)]
+        dist.gather(param.grad.data, gather_list, dst=0)
+        if dist.get_rank() == 0: 
+            average = torch.stack(gather_list).mean(0)
+        dist.scatter(param.grad.data, [average for _ in range(size)], src=0)
         
 
 def evaluate(args, model, tokenizer, prefix=""):
@@ -364,6 +365,9 @@ def main():
                         help="For distributed training: local_rank. If single-node training, local_rank defaults to -1.")
     parser.add_argument("--world_size", type=int, default=1,
                         help="Number of processes participating in distributed training")
+    parser.add_argument("--master_ip", type=str, default="10.10.1.2", help="IP address of the master node")
+    parser.add_argument("--master_port", type=str, default="12345", help="Port of the master node")
+    
     args = parser.parse_args()
 
     if os.path.exists(args.output_dir) and os.listdir(args.output_dir) and args.do_train and not args.overwrite_output_dir:
@@ -376,7 +380,7 @@ def main():
     else:
         # running on gloo
         dist.init_process_group(backend='gloo',
-                                init_method=f"tcp://10.10.1.2:12345",
+                                init_method=f"tcp://{args.master_ip}:{args.master_port}",
                                 world_size=args.world_size,
                                 rank=args.local_rank)
         args.device = torch.device("cpu", args.local_rank)
