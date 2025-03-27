@@ -34,6 +34,3 @@ for i in "${!SERVERS[@]}"; do
         tmux new-session -d -s "$SESSION_NAME" "$REMOTE_COMMAND $i"
 EOF
 done
-
-EOF
-done

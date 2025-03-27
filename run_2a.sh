@@ -18,4 +18,4 @@ python3 run_glue.py \
   --output_dir /tmp/$TASK_NAME/ \
   --overwrite_output_dir \
   --world_size 4 \
-  --local_rank $1
+  --local_rank $1 &> run_2a_$1.out
