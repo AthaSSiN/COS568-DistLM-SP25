@@ -28,6 +28,7 @@ for SERVER in "${SERVERS[@]}"; do
     echo "Connecting to $SERVER..."
     ssh "$SERVER" << EOF
         cd "$REMOTE_DIR" || exit 1
+        git stash
         git pull
         $REMOTE_COMMAND
 EOF
