@@ -156,6 +156,7 @@ def train(args, train_dataset, model, tokenizer):
             train_iterator.close()
             break
 
+    evaluate(args, model, tokenizer)
     return global_step, tr_loss / global_step
 
 def average_gradients(model):
@@ -227,12 +228,16 @@ def evaluate(args, model, tokenizer, prefix=""):
         results.update(result)
 
         output_eval_file = os.path.join(eval_output_dir, "eval_results.txt")
-        with open(output_eval_file, "w") as writer:
+        if args.local_rank in [-1, 0]:
+            with open(output_eval_file, "w") as writer:
+                logger.info("***** Eval results {} *****".format(prefix))
+                for key in sorted(result.keys()):
+                    logger.info("  %s = %s", key, str(result[key]))
+                    writer.write("%s = %s\n" % (key, str(result[key])))
+        else:
             logger.info("***** Eval results {} *****".format(prefix))
             for key in sorted(result.keys()):
                 logger.info("  %s = %s", key, str(result[key]))
-                writer.write("%s = %s\n" % (key, str(result[key])))
-
     return results
 
 
@@ -422,7 +427,6 @@ def main():
 
     logger.info("Training/evaluation parameters %s", args)
 
-    evaluate(args, model, tokenizer, prefix="")
     # Training
     if args.do_train:
         train_dataset = load_and_cache_examples(args, args.task_name, tokenizer, evaluate=False)
