@@ -414,7 +414,7 @@ def main():
         dist.barrier()  # Make sure only the first process in distributed training will download model & vocab
 
     model.to(args.device)
-    model = DDP(model, device_ids=[args.device])
+    model = DDP(model, device_ids=[args.device], output_device=args.device)
 
     logger.info("Training/evaluation parameters %s", args)
 
