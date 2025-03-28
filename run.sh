@@ -31,6 +31,7 @@ for i in "${!SERVERS[@]}"; do
     ssh "$SERVER" << EOF
         cd "$REMOTE_DIR" || exit 1
         git pull
+        tmux kill-session -t "$SESSION_NAME"
         tmux new-session -d -s "$SESSION_NAME" "$REMOTE_COMMAND $i"
 EOF
 done
