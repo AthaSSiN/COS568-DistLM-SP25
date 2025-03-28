@@ -74,7 +74,7 @@ def train(args, train_dataset, model, tokenizer):
     """ Train the model """
 
     args.train_batch_size = args.per_device_train_batch_size
-    train_sampler = RandomSampler(train_dataset)
+    train_sampler = DistributedSampler(train_dataset)
     train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
 
     if args.max_steps > 0:
@@ -134,38 +134,28 @@ def train(args, train_dataset, model, tokenizer):
                     scaled_loss.backward()
                 torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), args.max_grad_norm)
             else:
-                ##################################################
                 loss.backward()                
-                ##################################################
                 torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
 
             tr_loss += loss.item()
     
             if (step + 1) % args.gradient_accumulation_steps == 0:
                 average_gradients(model)
-                ##################################################
-                # TODO(cos568): perform a single optimization step (parameter update) by invoking the optimizer (expect one line of code)
                 optimizer.step()
-                
-                ##################################################
+
                 scheduler.step() # Update learning rate schedule
                 model.zero_grad()
                 global_step += 1
 
-            print("Iteration: ", step, " Loss: ", loss.item(), " Time: ", time.perf_counter() - start_time)
+            print("Iteration: ", step, ", Loss: ", loss.item(), ", Time: ", time.perf_counter() - start_time)
             if args.max_steps > 0 and global_step > args.max_steps:
                 epoch_iterator.close()
                 break
         if args.max_steps > 0 and global_step > args.max_steps:
             train_iterator.close()
             break
-        
-        ##################################################
-        # TODO(cos568): call evaluate() here to get the model performance after every epoch. (expect one line of code)
-        evaluate(args, model, tokenizer)
 
-        ##################################################
-
+    evaluate(args, model, tokenizer)
     return global_step, tr_loss / global_step
 
 def average_gradients(model):
@@ -229,12 +219,16 @@ def evaluate(args, model, tokenizer, prefix=""):
         results.update(result)
 
         output_eval_file = os.path.join(eval_output_dir, "eval_results.txt")
-        with open(output_eval_file, "w") as writer:
-            logger.info("***** Eval results {} *****".format(prefix))
+        if args.local_rank in [-1, 0]:
+            with open(output_eval_file, "w") as writer:
+                logger.info("***** Eval results {} *****".format(prefix))
+                for key in sorted(result.keys()):
+                    logger.info("  %s = %s", key, str(result[key]))
+                    writer.write("%s = %s\n" % (key, str(result[key])))
+        else:
+            print("***** Eval results {} *****".format(prefix))
             for key in sorted(result.keys()):
-                logger.info("  %s = %s", key, str(result[key]))
-                writer.write("%s = %s\n" % (key, str(result[key])))
-
+                print("  %s = %s", key, str(result[key]))
     return results
 
 
@@ -424,7 +418,6 @@ def main():
 
     logger.info("Training/evaluation parameters %s", args)
 
-
     # Training
     if args.do_train:
         train_dataset = load_and_cache_examples(args, args.task_name, tokenizer, evaluate=False)
@@ -432,8 +425,7 @@ def main():
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
 
     # Evaluation
-    if args.local_rank in [-1, 0] and args.do_eval:
-        evaluate(args, model, tokenizer, prefix="")
+    evaluate(args, model, tokenizer, prefix="")
 
 if __name__ == "__main__":
     main()
