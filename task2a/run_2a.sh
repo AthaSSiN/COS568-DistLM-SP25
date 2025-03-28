@@ -4,7 +4,7 @@ export GLUE_DIR=/proj/cos568proj2-PG0/glue_data
 export TASK_NAME=RTE
 export PATH=$PATH:/users/atharvsp/.local/bin
 rm task2a/run_2a_$1.out
-python3 task2a/run_glue.py \
+python3 temp.py \
   --model_type bert \
   --model_name_or_path bert-base-cased \
   --task_name $TASK_NAME \
