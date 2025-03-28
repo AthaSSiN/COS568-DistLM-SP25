@@ -74,7 +74,7 @@ def train(args, train_dataset, model, tokenizer):
     """ Train the model """
 
     args.train_batch_size = args.per_device_train_batch_size
-    train_sampler = RandomSampler(train_dataset)
+    train_sampler = DistributedSampler(train_dataset)
     train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
 
     if args.max_steps > 0:
@@ -163,6 +163,8 @@ def average_gradients(model):
     # use gather and scatter to update gradients from the backend
     size = int(dist.get_world_size())
     for param in model.parameters():
+        if param.grad is None:
+            continue
         if dist.get_rank() == 0: 
             gather_list = [torch.zeros_like(param.grad.data) for _ in range(size)]
             dist.gather(param.grad.data, gather_list, dst=0)
