@@ -151,7 +151,6 @@ def train(args, train_dataset, model, tokenizer):
             if args.max_steps > 0 and global_step > args.max_steps:
                 epoch_iterator.close()
                 break
-            break
         if args.max_steps > 0 and global_step > args.max_steps:
             train_iterator.close()
             break
@@ -235,9 +234,9 @@ def evaluate(args, model, tokenizer, prefix=""):
                     logger.info("  %s = %s", key, str(result[key]))
                     writer.write("%s = %s\n" % (key, str(result[key])))
         else:
-            logger.info("***** Eval results {} *****".format(prefix))
+            print("***** Eval results {} *****".format(prefix))
             for key in sorted(result.keys()):
-                logger.info("  %s = %s", key, str(result[key]))
+                print("  %s = %s", key, str(result[key]))
     return results
 
 

@@ -2,12 +2,13 @@
 
 # Check for user-supplied command to run on remote servers
 if [ "$#" -lt 1 ]; then
-    echo "Usage: $0 <command_to_run_on_servers>"
+    echo "Usage: $0 task num"
     exit 1
 fi
 
-REMOTE_COMMAND="$*"
-SESSION_NAME="cos568_run"
+TASK_NUM="$*"
+SESSION_NAME="cos568_run_$TASK_NUM"
+REMOTE_COMMAND="task$TASK_NUM/run_$TASK_NUM.sh"
 
 # Step 1-3: Commit and push changes from main system
 echo "Committing and pushing local changes..."
