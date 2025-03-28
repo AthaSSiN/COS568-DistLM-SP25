@@ -376,10 +376,8 @@ def main():
                              "See details at https://nvidia.github.io/apex/amp.html")
     
     
-    parser.add_argument("--master_ip", type=str, 
-                        help="Master IP")
-    parser.add_argument("--master_port", type=str, 
-                        help="Master Port")
+    parser.add_argument("--master_ip", type=str, default="10.10.1.2", help="IP address of the master node")
+    parser.add_argument("--master_port", type=str, default="12345", help="Port of the master node")
     parser.add_argument("--world_size", type=int, 
                         help="World size")
     
@@ -416,7 +414,7 @@ def main():
 
     torch.distributed.init_process_group(
         backend='gloo', # for cpu
-        init_method=f"tcp://{args.master_ip}:{args.master_port}", # "tcp://{master_ip}:{master_port}"
+        init_method=f"tcp://10:{args.master_port}", # "tcp://{master_ip}:{master_port}"
         world_size=args.world_size, # Number of nodes (4 in our experiments)
         rank=args.local_rank, # 0, 1, 2, 3
     )
