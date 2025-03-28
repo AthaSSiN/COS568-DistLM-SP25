@@ -18,4 +18,6 @@ python3 task2b/run_glue.py \
   --output_dir /tmp/$TASK_NAME/ \
   --overwrite_output_dir \
   --world_size 4 \
-  --local_rank $1 &> task2b/run_2b_$1.out
+  --local_rank $1 \
+  --master_ip "10.10.1.2" \
+  --master_port 12346  &> task2b/run_2b_$1.out
