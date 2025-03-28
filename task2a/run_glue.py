@@ -422,7 +422,7 @@ def main():
 
     logger.info("Training/evaluation parameters %s", args)
 
-
+    evaluate(args, model, tokenizer, prefix="")
     # Training
     if args.do_train:
         train_dataset = load_and_cache_examples(args, args.task_name, tokenizer, evaluate=False)
@@ -430,9 +430,7 @@ def main():
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
 
     # Evaluation
-    print(args.local_rank)
-    if args.local_rank in [-1, 0] and args.do_eval:
-        evaluate(args, model, tokenizer, prefix="")
+    evaluate(args, model, tokenizer, prefix="")
 
 if __name__ == "__main__":
     main()
