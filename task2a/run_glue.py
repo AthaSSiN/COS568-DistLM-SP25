@@ -155,9 +155,6 @@ def train(args, train_dataset, model, tokenizer):
         if args.max_steps > 0 and global_step > args.max_steps:
             train_iterator.close()
             break
-        
-        if args.local_rank in [-1, 0]:
-            evaluate(args, model, tokenizer)
 
     return global_step, tr_loss / global_step
 
