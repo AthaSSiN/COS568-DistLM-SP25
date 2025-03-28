@@ -413,8 +413,8 @@ def main():
     if args.local_rank == 0:
         dist.barrier()  # Make sure only the first process in distributed training will download model & vocab
 
-    model.to("cpu:" + str(args.local_rank))
-    model = DDP(model, device_ids=[args.device], output_device=args.device)
+    model.to(args.device)
+    model = DDP(model)
 
     logger.info("Training/evaluation parameters %s", args)
 
