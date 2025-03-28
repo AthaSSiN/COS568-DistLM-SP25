@@ -115,7 +115,7 @@ def train(args, train_dataset, model, tokenizer):
     set_seed(args)  # Added here for reproductibility (even between python 2 and 3)
     for _ in train_iterator:
         epoch_iterator = tqdm(train_dataloader, desc="Iteration", disable=args.local_rank not in [-1, 0])
-        for step, batch in enumerate(epoch_iterator[0:1]):
+        for step, batch in enumerate(epoch_iterator):
             start_time = time.perf_counter()
             model.train()
             batch = tuple(t.to(args.device) for t in batch)
@@ -151,6 +151,7 @@ def train(args, train_dataset, model, tokenizer):
             if args.max_steps > 0 and global_step > args.max_steps:
                 epoch_iterator.close()
                 break
+            break
         if args.max_steps > 0 and global_step > args.max_steps:
             train_iterator.close()
             break
