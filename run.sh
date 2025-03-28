@@ -7,7 +7,7 @@ if [ "$#" -lt 1 ]; then
 fi
 
 REMOTE_COMMAND="$*"
-SESSION_NAME="cos568_run_$RUN_COMMAND"
+SESSION_NAME="cos568_run_$REMOTE_COMMAND"
 
 # Step 1-3: Commit and push changes from main system
 echo "Committing and pushing local changes..."
