@@ -45,6 +45,7 @@ from pytorch_transformers import AdamW, WarmupLinearSchedule
 
 from utils_glue import (compute_metrics, convert_examples_to_features,
                         output_modes, processors)
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +112,7 @@ def train(args, train_dataset, model, tokenizer):
     train_iterator = trange(int(args.num_train_epochs), desc="Epoch", disable=args.local_rank not in [-1, 0])
     set_seed(args)  # Added here for reproductibility (even between python 2 and 3)
     for _ in train_iterator:
+        start_time = time.perf_counter()
         epoch_iterator = tqdm(train_dataloader, desc="Iteration", disable=args.local_rank not in [-1, 0])
         for step, batch in enumerate(epoch_iterator):
             model.train()
@@ -137,6 +139,7 @@ def train(args, train_dataset, model, tokenizer):
                 torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
 
             tr_loss += loss.item()
+
             if (step + 1) % args.gradient_accumulation_steps == 0:
                 ##################################################
                 # TODO(cos568): perform a single optimization step (parameter update) by invoking the optimizer (expect one line of code)
@@ -146,7 +149,8 @@ def train(args, train_dataset, model, tokenizer):
                 scheduler.step() # Update learning rate schedule
                 model.zero_grad()
                 global_step += 1
-
+                
+            print("Iteration: ", step, ", Loss: ", loss.item(), ", Time: ", time.perf_counter() - start_time)
             if args.max_steps > 0 and global_step > args.max_steps:
                 epoch_iterator.close()
                 break
